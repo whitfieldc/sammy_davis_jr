@@ -1,14 +1,12 @@
 require "rack"
 
-module Sammy
-
+module Nancy
   class Base
-
     def initialize
       @routes = {}
     end
 
-    attr_reader :routes, :request
+    attr_reader :routes
 
     def get(path, &handler)
       route("GET", path, &handler)
@@ -30,6 +28,10 @@ module Sammy
       route("DELETE", path, &handler)
     end
 
+    def head(path, &handler)
+      route("HEAD", path, &handler)
+    end
+
     def call(env)
       @request = Rack::Request.new(env)
       verb = @request.request_method
@@ -38,7 +40,6 @@ module Sammy
       handler = @routes.fetch(verb, {}).fetch(requested_path, nil)
 
       if handler
-        # instance_eval(&handler)
         result = instance_eval(&handler)
         if result.class == String
           [200, {}, [result]]
@@ -48,12 +49,9 @@ module Sammy
       else
         [404, {}, ["Oops! No route for #{verb} #{requested_path}"]]
       end
-
     end
 
-    def params
-      @request.params
-    end
+    attr_reader :request
 
     private
 
@@ -65,7 +63,6 @@ module Sammy
     def params
       @request.params
     end
-
   end
 
   Application = Base.new
@@ -85,14 +82,4 @@ module Sammy
   end
 end
 
-include Sammy::Delegator
-
-get "/hello" do
-  "Sammy::Application says hello"
-end
-
-post "/" do
-  request.body
-end
-
-Rack::Handler::WEBrick.run Sammy::Application, Port: 9292
+include Nancy::Delegator
