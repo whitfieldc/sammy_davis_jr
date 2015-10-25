@@ -37,7 +37,13 @@ module Sammy
       handler = @routes.fetch(verb, {}).fetch(requested_path, nil)
 
       if handler
-        instance_eval(&handler)
+        # instance_eval(&handler)
+        result = instance_eval(&handler)
+        if result.class == String
+          [200, {}, [result]]
+        else
+          result
+        end
       else
         [404, {}, ["Oops! No route for #{verb} #{requested_path}"]]
       end
@@ -55,17 +61,23 @@ module Sammy
       @routes[verb][path] = handler
     end
 
+    def params
+      request.params
+    end
+
   end
+
+  Application = Base.new
 end
 
-sammy = Sammy::Base.new
+sammy_application = Sammy::Application
 
-sammy.get "/hello" do
-  [200, {}, ["It's all a state of mind, whether or not you find, that place down there or #{params.inspect}"]]
+sammy_application.get "/hello" do
+  "Sammy::Application says hello"
 end
 
-sammy.post "/" do
-  [200, {}, request.body]
+sammy_application.post "/" do
+  request.body
 end
 
-Rack::Handler::WEBrick.run sammy, Port: 9292
+Rack::Handler::WEBrick.run sammy_application, Port: 9292
