@@ -13,6 +13,16 @@ module Sammy
       route("GET", path, &handler)
     end
 
+    def call(env)
+      @request = Rack::Request.new(env)
+      verb = @request.request_method
+      requested_path = @request.path_info
+
+      handler = @routes[verb][requested_path]
+
+      handler.call
+    end
+
     private
 
     def route(verb, path, &handler)
@@ -29,4 +39,4 @@ sammy.get "/hello" do
   [200, {}, ["EO 11"]]
 end
 
-puts sammy.routes
+Rack::Handler::WEBrick.run sammy, Port: 9292
