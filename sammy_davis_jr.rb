@@ -18,9 +18,14 @@ module Sammy
       verb = @request.request_method
       requested_path = @request.path_info
 
-      handler = @routes[verb][requested_path]
+      handler = @routes.fetch(verb, {}).fetch(requested_path, nil)
 
-      handler.call
+      if handler
+        handler.call
+      else
+        [404, {}, ["Oops! No route for #{verb} #{requested_path}"]]
+      end
+
     end
 
     private
