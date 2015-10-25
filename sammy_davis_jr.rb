@@ -7,10 +7,26 @@ module Sammy
       @routes = {}
     end
 
-    attr_reader :routes
+    attr_reader :routes, :request
 
     def get(path, &handler)
       route("GET", path, &handler)
+    end
+
+    def post(path, &handler)
+      route("POST", path, &handler)
+    end
+
+    def put(path, &handler)
+      route("PUT", path, &handler)
+    end
+
+    def patch(path, &handler)
+      route("PATCH", path, &handler)
+    end
+
+    def delete(path, &handler)
+      route("DELETE", path, &handler)
     end
 
     def call(env)
@@ -46,6 +62,10 @@ sammy = Sammy::Base.new
 
 sammy.get "/hello" do
   [200, {}, ["It's all a state of mind, whether or not you find, that place down there or #{params.inspect}"]]
+end
+
+sammy.post "/" do
+  [200, {}, request.body]
 end
 
 Rack::Handler::WEBrick.run sammy, Port: 9292
